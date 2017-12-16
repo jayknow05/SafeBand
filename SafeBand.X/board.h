@@ -64,6 +64,8 @@ void init_gpio(void);
 #define spi1_sclk _RP3R
 #define spi1_mosi _RP1R
 #define spi1_miso 2
+
+#define CLOCK_FREQUENCY 4000000
         
 #ifdef	__cplusplus
 }

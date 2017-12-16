@@ -12,16 +12,16 @@
 extern "C" {
 #endif
 
-extern unsigned int c1;
-extern unsigned int c2;
-extern unsigned int c3;
-extern unsigned int c4;
-extern unsigned int c5;
-extern unsigned int c6;
+extern long c1;
+extern long c2;
+extern long c3;
+extern long c4;
+extern long c5;
+extern long c6;
 
 int read_register(char address, char length, const long * data);
 void init_pressure_sensor(void);
-void get_pressure_temperature(long * pressure, long * temperature);
+void get_pressure(long * pressure);
 
 #ifdef	__cplusplus
 }

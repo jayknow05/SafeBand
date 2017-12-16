@@ -1,389 +1,187 @@
-#include <p24FJ128GB202.h>
-
+#include <stdint.h>
+#include <string.h>
+#include <xc.h>
 #include "i2c.h"
 #include "board.h"
+#include "error.h"
+#include "config.h"
 
-long head;
 
-void init_i2c(void)
+uint32_t _timeout = 0;
+
+void I2cInitialize(uint32_t i2c_frequency_hz)
 {   
     I2C1CONLbits.I2CEN = 0;
     I2C1CONLbits.A10M = 0;    //Using a 7 bit slave address
     I2C1CONLbits.SMEN = 1;
     I2C1CONLbits.DISSLW = 0;
-    I2C1BRG = 255;         //100kHz clock
+    I2C1BRG = CLOCK_FREQUENCY/i2c_frequency_hz - 2;
+    I2C1CONLbits.I2CEN = 1;  
     
-    TRISBbits.TRISB9 = 0;
-    LATBbits.LATB9 = 0;        
-    I2C1CONLbits.I2CEN = 1;
-    LATBbits.LATB9 = 1;
-        
-    head = 0;
-    
-    Nop();
+    return;
 }
 
- #define I2C_WaitIdle()  do {\
-                            while(I2C1CON1bits.SEN\
-                               || I2C1CON1bits.PEN || I2C1CON1bits.RCEN\
-                               || I2C1CON1bits.ACKEN || I2C1STATbits.TRSTAT)\
-                               continue;\
-                         } while (0)
-
-void i2c_read(void)
+void SetI2cTimeout(uint32_t timeout)
 {
-    
-    if (I2C1STATbits.BCL == 1)
-    {
-        init_i2c();
-    }
+    _timeout = timeout;
    
-    while(I2C1CON1bits.SEN || I2C1CON1bits.PEN || I2C1CON1bits.RCEN || I2C1CON1bits.ACKEN || I2C1STATbits.TRSTAT);
-    
-//    I2C1CON1bits.SEN = 1;
-//    while(I2C1CON1bits.SEN);
-    
-    I2C_SDA1_SetHigh();
-    I2C_SCL1_SetHigh();
-    
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
+    return;
+}
 
-    I2C_SDA1_SetLow();
+uint8_t SendStartCondition(void)
+{
+    uint32_t timeout_counter = _timeout;
     
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
+    I2C1CON1bits.SEN = 1;
+    while( I2C1CON1bits.SEN && (timeout_counter-- || !_timeout) );
     
-    I2C_SCL1_SetLow();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    
-    I2C1TRN = 0x31;    
-    while(I2C1STATbits.TRSTAT);
-    if(I2C1STATbits.ACKSTAT || I2C1STATbits.BCL)
+    if(I2C1STATbits.BCL)
     {
-        LedRed_SetHigh();
-        return;
+        return ERROR_BUS_COLLISION;
     }
+    
+    if(CheckTimeout(timeout_counter))
+    {
+        return ERROR_TIMEOUT;
+    }
+    else
+    {
+        return SUCCESS;
+    }
+}
 
-    I2C1TRN = 0x0F;    
-    while(I2C1STATbits.TRSTAT);
+uint8_t SendStopCondition(void)
+{
+    uint32_t timeout_counter = _timeout;
     
-    if(I2C1STATbits.ACKSTAT || I2C1STATbits.BCL)
+    I2C1CON1bits.PEN = 1;
+    while( I2C1CON1bits.PEN && (timeout_counter-- || !_timeout) );
+    
+    if(CheckTimeout(timeout_counter))
     {
-        LedRed_SetHigh();
+        return ERROR_TIMEOUT;
     }
+    else
+    {
+        return SUCCESS;
+    }
+}
+
+uint8_t SendRestartCondition(void)
+{
+    uint32_t timeout_counter = _timeout;
     
     I2C1CON1bits.RSEN = 1;
-    while(I2C1CON1bits.RSEN);
+    while( I2C1CON1bits.RSEN && (timeout_counter-- || !_timeout) );
     
-    I2C1TRN = 0x30;
-    
-    while(I2C1STATbits.TRSTAT)
-        ;
-    
-    if(I2C1STATbits.ACKSTAT || I2C1STATbits.BCL)
+    if(CheckTimeout(timeout_counter))
     {
-        LedRed_SetHigh();
+        return ERROR_TIMEOUT;
     }
-    
-    I2C1CON1bits.ACKDT = 1;
-    
-    I2C1CON1bits.RCEN = 1;
-    while(I2C1CON1bits.RCEN);
-    
-    long res;
-    res = I2C1RCV;
-    long tmp = I2C1CON1;
-    I2C1CON1bits.ACKEN = 1;
-    while(I2C1CON1bits.ACKEN)	
-        ;
-    
-    I2C1CON1bits.PEN = 1;
-    while(I2C1CON1bits.PEN)	
-        ;   
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-}
-//void i2c_read(void)
-//{
-//    if (I2C1STATbits.BCL == 1)
-//    {
-//        init_i2c();
-//    }
-//   
-//    while(I2C1CON1bits.SEN || I2C1CON1bits.PEN || I2C1CON1bits.RCEN || I2C1CON1bits.ACKEN || I2C1STATbits.TRSTAT);
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    LATBbits.LATB9 = 0;
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    LATBbits.LATB9 = 1;
-//    I2C1CON1bits.SEN = 1;
-//    while(I2C1CON1bits.SEN);
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    Nop();
-//    I2C1TRN = 0x31;    
-//    while(I2C1STATbits.TRSTAT);
-//    if(I2C1STATbits.ACKSTAT || I2C1STATbits.BCL)
-//    {
-//        LedRed_SetHigh();
-//        return;
-//    }
-//
-//    I2C1TRN = 0x0F;    
-//    while(I2C1STATbits.TRSTAT);
-//    
-//    if(I2C1STATbits.ACKSTAT || I2C1STATbits.BCL)
-//    {
-//        LedRed_SetHigh();
-//    }
-//    
-//    I2C1CON1bits.RSEN = 1;
-//    while(I2C1CON1bits.RSEN);
-//    
-//    I2C1TRN = 0x30;
-//    
-//    while(I2C1STATbits.TRSTAT)
-//        ;
-//    
-//    if(I2C1STATbits.ACKSTAT || I2C1STATbits.BCL)
-//    {
-//        LedRed_SetHigh();
-//    }
-//    
-//    I2C1CON1bits.ACKDT = 1;
-//    
-//    I2C1CON1bits.RCEN = 1;
-//    while(I2C1CON1bits.RCEN);
-//    
-//    long res;
-//    res = I2C1RCV;
-//    long tmp = I2C1CON1;
-//    I2C1CON1bits.ACKEN = 1;
-//    while(I2C1CON1bits.ACKEN)	
-//        ;
-//    
-//    I2C1CON1bits.PEN = 1;
-//    while(I2C1CON1bits.PEN)	
-//        ;   
-//
-//}
-char i2c_read_eeprom(void)
-{
-    I2C1CON1bits.SEN = 1;
-    while(I2C1CON1bits.SEN);
-    
-    I2C1TRN = 0b10100000;    
-    while(I2C1STATbits.TRSTAT);
-    
-    if(I2C1STATbits.ACKSTAT || I2C1STATbits.BCL)
+    else
     {
-        return 1;
+        return SUCCESS;
     }
-
-    I2C1TRN = head - 16;    
-    while(I2C1STATbits.TRSTAT);
-    
-    if(I2C1STATbits.ACKSTAT || I2C1STATbits.BCL)
-    {
-        return 1;
-    }
-    
-    I2C1TRN = 0b00000000;    
-    while(I2C1STATbits.TRSTAT);
-    
-    if(I2C1STATbits.ACKSTAT || I2C1STATbits.BCL)
-    {
-        return 1;
-    }
-    
-    I2C1CON1bits.SEN = 1;
-    while(I2C1CON1bits.SEN);
-    
-    I2C1TRN = 0b10100001;    
-    while(I2C1STATbits.TRSTAT);
-    
-    if(I2C1STATbits.ACKSTAT || I2C1STATbits.BCL)
-    {
-        return 1;
-    }
-        
-    I2C1CON1bits.ACKDT = 1;
-    
-    I2C1CON1bits.RCEN = 1;
-    while(I2C1CON1bits.RCEN);
-    
-    long res;
-    res = I2C1RCV;
-
-    I2C1CON1bits.ACKEN = 1;
-    while(I2C1CON1bits.ACKEN)	
-        ;
-    
-    I2C1CON1bits.PEN = 1;
-    while(I2C1CON1bits.PEN)	
-        ;   
-
-    return 1;
-
 }
 
-int i2c_write_eeprom(char byte)
+uint8_t SendByte(uint8_t byte)
 {
-    I2C1CON1bits.SEN = 1;
-    while(I2C1CON1bits.SEN);
+    I2C1TRN = byte;
+    return WaitForSlaveResponse();    
+}
+
+uint8_t SendI2cReadAddress(uint8_t address)
+{
+    return SendByte( ( address << 1 ) | 1 );
+}
+
+uint8_t SendI2cWriteAddress(uint8_t address)
+{
+    return SendByte( address << 1 );
+}
+
+uint8_t WaitForSlaveResponse(void)
+{
+    uint32_t timeout_counter = _timeout;
     
-    I2C1TRN = 0b10100000;    
-    while(I2C1STATbits.TRSTAT);
-    Nop();
-    Nop();
-    if(I2C1STATbits.ACKSTAT || I2C1STATbits.BCL)
+    while( I2C1STATbits.TRSTAT && (timeout_counter-- || !_timeout) );
+    
+    if(CheckTimeout(timeout_counter))
     {
-        return 1;
+        return ERROR_TIMEOUT;
     }
     
-    I2C1TRN = head;    
-    head += 16;
-    while(I2C1STATbits.TRSTAT);
-    
-    if(I2C1STATbits.ACKSTAT || I2C1STATbits.BCL)
+    if(I2C1STATbits.ACKSTAT)
     {
-        return 1;
+        return ERROR_SLAVE_NACK;
+    }
+    else if(I2C1STATbits.BCL)
+    {
+        return ERROR_BUS_COLLISION;
     }
     
-    I2C1TRN = 0b00000000;    
-    while(I2C1STATbits.TRSTAT);
-    
-    if(I2C1STATbits.ACKSTAT || I2C1STATbits.BCL)
+    return SUCCESS;
+}
+
+uint8_t CheckTimeout(uint32_t timeout_counter)
+{   
+    if ( (timeout_counter == 0) && _timeout )
     {
-        return 1;
-    }
-    
-    I2C1TRN = byte;    
-    while(I2C1STATbits.TRSTAT);
-    
-    if(I2C1STATbits.ACKSTAT || I2C1STATbits.BCL)
-    {
-        return 1;
+        return ERROR_TIMEOUT;
     }
 
-    I2C1CON1bits.PEN = 1;
-    while(I2C1CON1bits.PEN)	
-        ;   
+    return SUCCESS;
+}
+
+uint8_t I2cWaitIdle(void)
+{
+    uint32_t timeout_counter = _timeout;
     
-    int i = 5000000;
-    while(i--)
+    if( I2C1STATbits.BCL )
     {
-        Nop();
+        I2cInitialize(I2C_FREQUENCY);
     }
     
-    return 0;
+    while(( I2C1CON1bits.SEN || 
+            I2C1CON1bits.PEN || 
+            I2C1CON1bits.RCEN || 
+            I2C1CON1bits.ACKEN ||
+            I2C1STATbits.TRSTAT )  && ( timeout_counter-- || !_timeout ));
+    
+    if(CheckTimeout(timeout_counter))
+    {
+        return ERROR_TIMEOUT;
+    }
+    
+    return SUCCESS;
+}
+
+uint8_t ReceiveByte(uint8_t * byte, uint8_t master_response)
+{
+    uint32_t timeout_counter = _timeout;
+    uint8_t received_byte;        
+    I2C1CON1bits.ACKDT = master_response;    
+    I2C1CON1bits.RCEN = 1;
+    
+    while( I2C1CON1bits.RCEN && (timeout_counter-- || !_timeout) );
+    
+    if(CheckTimeout(timeout_counter))
+    {
+        return ERROR_TIMEOUT;
+    }
+    
+    timeout_counter = _timeout;
+    
+    received_byte = I2C1RCV;
+    memcpy(byte, &received_byte, 1);
+    
+    I2C1CON1bits.ACKEN = 1;
+    while(I2C1CON1bits.ACKEN && (timeout_counter-- || !_timeout) );
+    
+    if(CheckTimeout(timeout_counter))
+    {
+        return ERROR_TIMEOUT;
+    }
+    
+    return SUCCESS;
 }

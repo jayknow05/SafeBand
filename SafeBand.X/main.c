@@ -6,12 +6,16 @@
  */
 
 #include <xc.h>
+#include <stdint.h>
 #include "board.h"
 #include "spi.h"
 #include "pwm.h"
 #include "ms5541.h"
 #include "timer.h"
 #include "i2c.h"
+#include "eeprom.h"
+#include "safeband.h"
+#include "alarm.h"
 
 void read_sensors(void);
 
@@ -19,18 +23,28 @@ int main(void) {
 
     init_board();
     pwm_init();
-    init_timer();
     P2V5_ON();
-    init_pressure_sensor();
+    init_pressure_sensor(); // Reading calibration is still broken! Only works with sample calibration factors.
+    init_timer();
+    SetI2cTimeout(1000);
 
-    Nop();
-    Nop();
     LedRed_SetLow();
     LedBlue_SetLow();
     LedGreen_SetLow();
+    uint8_t tmp[64];
+    int i = 0;
+//    for (i = 0; i<64; i++)
+//    {
+//        tmp[i] = i+5;
+//    }
+    //WriteEeprom(&tmp, 64, 0);
+    //memset(tmp, 0x00, 256);
+    uint8_t res[5];
     while(1)
     {
-        //i2c_read();
+//        ReadByteEeprom(&res[0], 0);
+//        ReadByteEeprom(&res[1], 1);
+//        ReadByteEeprom(&res[2], 2);
     }    
 }
 
@@ -38,24 +52,6 @@ void __attribute__((__interrupt__, __shadow__)) _T1Interrupt(void)
 {
     /* Interrupt Service Routine code goes here */
     IFS0bits.T1IF = 0; //Reset Timer1 interrupt flag and Return from ISR
-    Nop();
-    read_sensors();
-}
-
-void read_sensors(void)
-{
-    i2c_read();
-    
-    static long pressure;
-    static long temperature;
-    
-    get_pressure_temperature(&pressure, &temperature);
-    // i2c_write_eeprom(temperature);
-    // i2c_read_eeprom();
-    Nop();
-    Nop();
-    Nop();
-    Nop();
-    
-    
+    handle_sensors();
+    HandleAlarm(check_should_alarm() );
 }

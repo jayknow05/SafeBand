@@ -12,11 +12,23 @@
 extern "C" {
 #endif
 
-void init_i2c(void);
-void i2c_read(void);
-char i2c_read_eeprom(void);
-int i2c_write_eeprom(char byte);
-extern long head;
+#include <stdint.h>
+    
+void I2cInitialize(uint32_t i2c_frequency_hz);
+void SetI2cTimeout(uint32_t timeout);
+uint8_t SendStartCondition(void);
+uint8_t SendStopCondition(void);
+uint8_t SendRestartCondition(void);
+uint8_t SendByte(uint8_t byte);
+uint8_t SendI2cReadAddress(uint8_t address);  
+uint8_t SendI2cWriteAddress(uint8_t address);
+uint8_t WaitForSlaveResponse(void);
+uint8_t CheckTimeout(uint32_t timeout_counter);
+uint8_t I2cWaitIdle(void);
+uint8_t ReceiveByte(uint8_t * byte, uint8_t master_response);
+
+#define I2C_ACK     1
+#define I2C_NACK    0
 
 #ifdef	__cplusplus
 }

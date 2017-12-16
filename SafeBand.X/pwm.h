@@ -13,6 +13,9 @@ extern "C" {
 #endif
 
 void pwm_init(void);
+void DisablePwm(void);
+void EnablePwm(void);
+void SetFrequency(uint32_t frequency);
 
 #ifdef	__cplusplus
 }

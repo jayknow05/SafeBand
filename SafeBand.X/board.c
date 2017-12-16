@@ -52,13 +52,14 @@
 #include "board.h"
 #include "i2c.h"
 #include "spi.h"
+#include "config.h"
 
 void init_board(void)
 {
     init_oscillator();
     init_gpio();
     init_spi1();
-    init_i2c();
+    I2cInitialize(I2C_FREQUENCY);
 }
 
 void init_oscillator(void)
