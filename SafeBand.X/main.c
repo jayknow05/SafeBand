@@ -16,6 +16,7 @@
 #include "eeprom.h"
 #include "safeband.h"
 #include "alarm.h"
+#include "lis2de12.h"
 
 void read_sensors(void);
 
@@ -23,9 +24,9 @@ int main(void) {
 
     init_board();
     pwm_init();
-    P2V5_ON();
-    init_pressure_sensor(); // Reading calibration is still broken! Only works with sample calibration factors.
-    init_timer();
+    // P2V5_ON();
+    // init_pressure_sensor(); // Reading calibration is still broken! Only works with sample calibration factors.
+    // init_timer();
     SetI2cTimeout(1000);
 
     LedRed_SetLow();
@@ -40,8 +41,15 @@ int main(void) {
     //WriteEeprom(&tmp, 64, 0);
     //memset(tmp, 0x00, 256);
     uint8_t res[5];
+    init_accelerometer();
+    uint8_t b;
+    read_byte_from_address(&b, OUT_Y_H);
+    double ret = ((double)b * 15.6)/1000;
+    Nop();
     while(1)
     {
+        read_byte_from_address(&b, OUT_Y_H);
+        ret = ((double)b * 15.6)/1000;
 //        ReadByteEeprom(&res[0], 0);
 //        ReadByteEeprom(&res[1], 1);
 //        ReadByteEeprom(&res[2], 2);

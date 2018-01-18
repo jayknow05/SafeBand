@@ -6,7 +6,6 @@
 #include "error.h"
 #include "config.h"
 
-
 uint32_t _timeout = 0;
 
 void I2cInitialize(uint32_t i2c_frequency_hz)
@@ -16,8 +15,7 @@ void I2cInitialize(uint32_t i2c_frequency_hz)
     I2C1CONLbits.SMEN = 1;
     I2C1CONLbits.DISSLW = 0;
     I2C1BRG = CLOCK_FREQUENCY/i2c_frequency_hz - 2;
-    I2C1CONLbits.I2CEN = 1;  
-    
+    I2C1CONLbits.I2CEN = 1;
     return;
 }
 

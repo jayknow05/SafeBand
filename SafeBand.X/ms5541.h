@@ -22,6 +22,7 @@ extern long c6;
 int read_register(char address, char length, const long * data);
 void init_pressure_sensor(void);
 void get_pressure(long * pressure);
+void reset_sensor(void);
 
 #ifdef	__cplusplus
 }
