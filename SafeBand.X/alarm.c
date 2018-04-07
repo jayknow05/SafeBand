@@ -38,11 +38,9 @@ void HandleAlarm(uint8_t shouldAlarm)
     }    
     else
     {
-//        LedRed_Toggle();
-//        LedGreen_Toggle();
-//        LedBlue_Toggle();
         BackoffCounter = 0;
     }
+    
     
     switch(_AlarmState)
     {
@@ -58,15 +56,20 @@ void HandleAlarm(uint8_t shouldAlarm)
         case On:
             // CurrentFrequency = ( CurrentFrequency + FREQUENCY_STEP > MAX_FREQUENCY ) ? MIN_FREQUENCY : CurrentFrequency + FREQUENCY_STEP;
             // SetFrequency(CurrentFrequency);
+            if (_AlarmCounter % 3 == 0 )
+            {
+                LedRed_Toggle();
+                LedGreen_Toggle();
+                LedBlue_Toggle();
+            }
+            
             if (_AlarmCounter >= AlarmSignalDurations[AlarmIndex])
             {
                 // EnablePwm();
                 AlarmIndex = ( AlarmIndex + 1 > NUM_ALARM_SEGMENTS - 1) ? 0 : AlarmIndex + 1 ;                
                 SetFrequency(AlarmSignalFrequencies[AlarmIndex]);
                 _AlarmCounter = 0;
-                LedRed_Toggle();
-                LedGreen_Toggle();
-                LedBlue_Toggle();
+                
             }
             else
             {
@@ -84,5 +87,3 @@ void HandleAlarm(uint8_t shouldAlarm)
             break;
     }
 }
-
-
