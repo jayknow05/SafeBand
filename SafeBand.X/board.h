@@ -17,6 +17,7 @@ extern "C" {
 void init_board(void);
 void init_oscillator(void);
 void init_gpio(void);
+void init_interrupt(void);
 
 #define LEDGREEN_TRIS TRISBbits.TRISB15
 #define LEDRED_TRIS TRISBbits.TRISB14
@@ -24,12 +25,15 @@ void init_gpio(void);
 #define P2V5_ENABLE_TRIS TRISBbits.TRISB7
 #define I2C_SDA1_TRIS TRISBbits.TRISB9
 #define I2C_SCL1_TRIS TRISBbits.TRISB8
-#define SPI1_MISO_TRIS TRISBbits.TRISB1
+#define SPI1_MISO_TRIS TRISBbits.TRISB2
 
 #define LEDGREEN_LAT LATBbits.LATB15
 #define LEDRED_LAT LATBbits.LATB14
 #define LEDBLUE_LAT LATBbits.LATB13
 #define P2V5_ENABLE_LAT LATBbits.LATB7
+#define SPI1_MISO_STATE PORTBbits.RB2
+#define INT2_ACCELEROMETER_STATE PORTBbits.RB4
+#define INT1_ACCELEROMETER_STATE PORTAbits.RA4
 
 #define I2C_SDA1_LAT LATBbits.LATB9
 #define I2C_SCL1_LAT LATBbits.LATB8

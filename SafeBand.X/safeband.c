@@ -7,6 +7,7 @@
 
 long pressure_buffer[PRESSURE_BUFFER_SIZE];
 long pressure_rate_of_change_buffer[PRESSURE_BUFFER_SIZE];
+AccelerometerData accelerometerData;
 long buffer_index = 0;
 float _InitialPressure;
 
@@ -14,6 +15,7 @@ void handle_sensors(void)
 {   
     get_pressure(&pressure_buffer[buffer_index]);
     calculate_rate_of_change((long int *)&pressure_buffer, (long int *)&pressure_rate_of_change_buffer, buffer_index);
+    get_accelerometer_data(&accelerometerData.x[buffer_index], &accelerometerData.y[buffer_index], &accelerometerData.z[buffer_index]);  
     buffer_index = (buffer_index + 1 + PRESSURE_BUFFER_SIZE) % PRESSURE_BUFFER_SIZE;
 }
 

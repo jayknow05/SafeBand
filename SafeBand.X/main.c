@@ -17,49 +17,103 @@
 #include "safeband.h"
 #include "alarm.h"
 #include "lis2de12.h"
+#include "rtcc.h"
+#include "deepsleep.h"
+#include "interrupt.h"
 
 void read_sensors(void);
+typedef enum {
+    INIT = 0,
+    ACQUIRING_PRESSURE,
+    IDLE,
+            
+} State;
+
+State state;
 
 int main(void) {
-
+    
+    // RCONbits.SWDTEN = 0;
     init_board();
-    pwm_init();
-    // P2V5_ON();
-    // init_pressure_sensor(); // Reading calibration is still broken! Only works with sample calibration factors.
-    // init_timer();
-    SetI2cTimeout(1000);
-
-    LedRed_SetLow();
-    LedBlue_SetLow();
-    LedGreen_SetLow();
-    uint8_t tmp[64];
-    int i = 0;
-//    for (i = 0; i<64; i++)
+    P2V5_ON();    
+    uint16_t current_state = DSGPR0;
+    RCON = 0;
+//    if (RCONbits.POR == 1)
 //    {
-//        tmp[i] = i+5;
+//        RCONbits.POR = 0;
+//        RCONbits.EXTR = 0;
+    current_state = IDLE; // INIT;
 //    }
-    //WriteEeprom(&tmp, 64, 0);
-    //memset(tmp, 0x00, 256);
-    uint8_t res[5];
-    init_accelerometer();
-    uint8_t b;
-    read_byte_from_address(&b, OUT_Y_H);
-    double ret = ((double)b * 15.6)/1000;
-    Nop();
+    
+    long pressure;
+    int i = 10;    
+    SetI2cTimeout(1000);
+    // init_interrupt();
+    //clear_interrupt();
+//    pwm_init();
+//    EnablePwm();
+//    SetFrequency(5000);
+//    while(1);
     while(1)
     {
-        read_byte_from_address(&b, OUT_Y_H);
-        ret = ((double)b * 15.6)/1000;
-//        ReadByteEeprom(&res[0], 0);
-//        ReadByteEeprom(&res[1], 1);
-//        ReadByteEeprom(&res[2], 2);
-    }    
+        switch(current_state)
+        {
+            case(INIT):
+                // RCONbits.SWDTEN = 0;
+                LedRed_SetHigh();
+                LedGreen_SetHigh();
+                LedBlue_SetHigh();
+                init_accelerometer();
+                P2V5_ON();
+                pwm_init();
+                init_pressure_sensor();
+                current_state = ACQUIRING_PRESSURE;
+                // RCONbits.SWDTEN = 1;
+                // GoToSleep(ACQUIRING_PRESSURE, 0);
+                // GoToDeepSleep(ACQUIRING_PRESSURE, 0);
+                break;
+            case(ACQUIRING_PRESSURE):
+                
+                LedRed_SetLow();
+                LedGreen_SetLow();
+                LedBlue_SetLow();
+                //P2V5_ON();
+                init_accelerometer();
+                handle_sensors();
+                HandleAlarm( check_should_alarm() );
+                //GoToDeepSleep(ACQUIRING_PRESSURE, 0);
+                power_down_accelerometer();
+                //P2V5_OFF();
+                //GoToSleep(ACQUIRING_PRESSURE, 0);
+                break;
+            case(IDLE):
+                break;
+            default:
+                current_state = INIT;
+                //LedGreen_SetHigh();
+                // GoToDeepSleep(current_state, 0);
+                break;
+        }    
+        HandleAlarm(1);//ClrWdt();
+    }
 }
 
-void __attribute__((__interrupt__, __shadow__)) _T1Interrupt(void)
+void __attribute__ ((interrupt, auto_psv))  _INT1Interrupt(void)
+{
+    uint8_t byte;
+    // write_byte_to_address(0x2A, INT1_CFG);
+    _INT1IF = 0;
+    
+    read_byte_from_address(&byte, REFERENCE);
+    
+    read_byte_from_address(&byte, INT1_SRC);
+    read_byte_from_address(&byte, INT2_SRC);
+    write_byte_to_address(0x2A, INT1_CFG);
+    write_byte_to_address(0x2A, INT2_CFG);
+};
+
+void __attribute__((interrupt, auto_psv)) _T1Interrupt(void)
 {
     /* Interrupt Service Routine code goes here */
     IFS0bits.T1IF = 0; //Reset Timer1 interrupt flag and Return from ISR
-    handle_sensors();
-    HandleAlarm(check_should_alarm() );
 }

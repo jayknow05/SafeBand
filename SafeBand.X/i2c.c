@@ -172,8 +172,7 @@ uint8_t ReceiveByte(uint8_t * byte, uint8_t master_response)
     
     received_byte = I2C1RCV;
     memcpy(byte, &received_byte, 1);
-    
-    I2C1CON1bits.ACKEN = 1;
+    I2C1CON1bits.ACKEN = 0;
     while(I2C1CON1bits.ACKEN && (timeout_counter-- || !_timeout) );
     
     if(CheckTimeout(timeout_counter))

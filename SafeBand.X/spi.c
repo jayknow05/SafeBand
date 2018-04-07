@@ -90,10 +90,6 @@ uint8_t spi_transfer_block(uint8_t *out_buf, uint8_t *in_buf, uint8_t len)
 			spi_transfer(0xFF);
 		}
 	}
-    
-    Nop();
-    Nop();
-    Nop();
 
 	return 0;
 }

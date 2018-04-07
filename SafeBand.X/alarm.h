@@ -15,9 +15,9 @@ extern "C" {
 #include <stdint.h>
     
 #define NUM_ALARM_SEGMENTS 5
-#define ALARM_SIGNAL_FREQUENCIES { 18000, 15000, 19000, 0 }
-#define ALARM_SIGNAL_DURATIONS { 1, 1, 1, 4 }
-#define BACKOFF_COUNT 10
+#define ALARM_SIGNAL_FREQUENCIES { 5000, 10000, 15000, 20000, 0 }
+#define ALARM_SIGNAL_DURATIONS { 10, 10, 10, 10, 40 }
+#define BACKOFF_COUNT 100
     
 extern uint32_t AlarmSignalFrequencies[NUM_ALARM_SEGMENTS];
 extern uint32_t AlarmSignalDurations[NUM_ALARM_SEGMENTS];
@@ -31,7 +31,7 @@ typedef enum
 } AlarmState;
 
 extern AlarmState _AlarmState;
-extern uint32_t AlarmCounter;
+extern uint32_t _AlarmCounter;
 extern uint32_t AlarmIndex;
     
 #ifdef	__cplusplus

@@ -5,7 +5,7 @@
 
 uint32_t AlarmSignalFrequencies[NUM_ALARM_SEGMENTS] = ALARM_SIGNAL_FREQUENCIES;
 uint32_t AlarmSignalDurations[NUM_ALARM_SEGMENTS] = ALARM_SIGNAL_DURATIONS;
-uint32_t AlarmCounter = 0;
+uint32_t _AlarmCounter = 0;
 uint32_t AlarmIndex = 0;
 uint32_t BackoffCounter = 0;
 
@@ -38,9 +38,9 @@ void HandleAlarm(uint8_t shouldAlarm)
     }    
     else
     {
-        LedRed_Toggle();
-        LedGreen_Toggle();
-        LedBlue_Toggle();
+//        LedRed_Toggle();
+//        LedGreen_Toggle();
+//        LedBlue_Toggle();
         BackoffCounter = 0;
     }
     
@@ -48,27 +48,31 @@ void HandleAlarm(uint8_t shouldAlarm)
     {
         case Init:
             BackoffCounter = 0;
-            AlarmCounter = 0;
+            _AlarmCounter = 0;
             AlarmIndex = 0;
             SetFrequency(0);
             EnablePwm();
             _AlarmState = On;
-            AlarmCounter++;
+            _AlarmCounter++;
             break;
         case On:
-            CurrentFrequency = ( CurrentFrequency + FREQUENCY_STEP > MAX_FREQUENCY ) ? MIN_FREQUENCY : CurrentFrequency + FREQUENCY_STEP;
-            SetFrequency(CurrentFrequency);
-//            if (AlarmCounter >= AlarmSignalDurations[AlarmIndex])
-//            {
-//                AlarmIndex = ( AlarmIndex + 1 > NUM_ALARM_SEGMENTS - 1) ? 0 : AlarmIndex + 1 ;                
-//                SetFrequency(AlarmSignalFrequencies[AlarmIndex]);
-//                AlarmCounter = 0;
-//            }
-//            else
-//            {
-//                
-//                AlarmCounter++;
-//            }
+            // CurrentFrequency = ( CurrentFrequency + FREQUENCY_STEP > MAX_FREQUENCY ) ? MIN_FREQUENCY : CurrentFrequency + FREQUENCY_STEP;
+            // SetFrequency(CurrentFrequency);
+            if (_AlarmCounter >= AlarmSignalDurations[AlarmIndex])
+            {
+                // EnablePwm();
+                AlarmIndex = ( AlarmIndex + 1 > NUM_ALARM_SEGMENTS - 1) ? 0 : AlarmIndex + 1 ;                
+                SetFrequency(AlarmSignalFrequencies[AlarmIndex]);
+                _AlarmCounter = 0;
+                LedRed_Toggle();
+                LedGreen_Toggle();
+                LedBlue_Toggle();
+            }
+            else
+            {
+                
+                _AlarmCounter++;
+            }
             break;
         case Off:
             if (shouldAlarm) 

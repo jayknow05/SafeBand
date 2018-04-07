@@ -29,11 +29,11 @@ void init_pressure_sensor(void)
     spi_transfer(0x50);
     SPI1CON1Lbits.CKE = 0;
     
-    i = 100;
-    while(i--)
-    {
-        Nop();
-    }
+//    i = 100;
+//    while(i--)
+//    {
+//        Nop();
+//    }
     
     spi_transfer_block(0, data, 2);
     word1 = data[0] * 256 + data[1];   
@@ -45,11 +45,11 @@ void init_pressure_sensor(void)
     spi_transfer(0x60);
     SPI1CON1Lbits.CKE = 0;
     
-    i = 100;
-    while(i--)
-    {
-        Nop();
-    }
+//    i = 100;
+//    while(i--)
+//    {
+//        Nop();
+//    }
     
     spi_transfer_block(0, data, 2);
     word2 = data[0] * 256 + data[1];
@@ -59,12 +59,12 @@ void init_pressure_sensor(void)
     spi_transfer(0x1D);
     spi_transfer(0x90);
     SPI1CON1Lbits.CKE = 0;
-    
-    i = 100;
-    while(i--)
-    {
-        Nop();
-    }
+//    
+//    i = 100;
+//    while(i--)
+//    {
+//        Nop();
+//    }
     
     spi_transfer_block(0, data, 2);
     word3 = data[0] * 256 + data[1];
@@ -75,12 +75,12 @@ void init_pressure_sensor(void)
     spi_transfer(0xA0);
     SPI1CON1Lbits.CKE = 0;
     
-    i = 100;
-    while(i--)
-    {
-        Nop();
-    }
-    
+//    i = 100;
+//    while(i--)
+//    {
+//        Nop();
+//    }
+//    
     spi_transfer_block(0, data, 2);
     word4 = data[0] * 256 + data[1];
     
@@ -90,8 +90,7 @@ void init_pressure_sensor(void)
 	c4 = (word4 >> 7) & 0x07FF;
 	c5 = ((word2 & 0x003F) << 6) | (word3 & 0x003F);
 	c6 = word4 & 0x007F;
-    Nop();
-    Nop();
+
     
     get_pressure(&last_pressure);
     
@@ -124,10 +123,10 @@ void get_pressure(long * pressure)
     spi_transfer(0x0F);
     spi_transfer(0x40);
     i = 50000000;
-    while(i--)
+    while((SPI1_MISO_STATE == 1) && (i--))
     {
-        Nop();
-    }
+        ClrWdt();
+    };
     
     SPI1CON1Lbits.CKE = 0;
     spi_transfer_block(0, data, 2);
@@ -137,12 +136,12 @@ void get_pressure(long * pressure)
     SPI1CON1Lbits.CKE = 1;  
     spi_transfer(0x0F);
     spi_transfer(0x20);
-    i = 50000000;
-    while(i--)
-    {
-        Nop();
-    }
     
+    i = 50000000;
+    while((SPI1_MISO_STATE == 1) && (i--)) 
+    {
+        ClrWdt();
+    };
     SPI1CON1Lbits.CKE = 0;
     spi_transfer_block(0, data, 2);
     d2 = data[0] *256 + data[1];
@@ -170,7 +169,7 @@ void reset_sensor(void)
     spi_transfer(0x55);
     spi_transfer(0x40);
     SPI1CON1Lbits.CKE = 0;
-    int i = 100000;
+    int i = 50;
     while(i--)
     {
         Nop();

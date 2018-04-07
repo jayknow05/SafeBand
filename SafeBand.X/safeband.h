@@ -16,10 +16,17 @@ extern "C" {
 #include <stdint.h>
 #include "config.h"
 
+typedef struct {
+    float x[ACCELEROMETER_BUFFER_SIZE];
+    float y[ACCELEROMETER_BUFFER_SIZE];
+    float z[ACCELEROMETER_BUFFER_SIZE];
+} AccelerometerData;    
+    
 extern long pressure_buffer[PRESSURE_BUFFER_SIZE];
 extern long pressure_rate_of_change_buffer[PRESSURE_BUFFER_SIZE];
 extern long buffer_index;
 extern float _InitialPressure;
+extern AccelerometerData accelerometerData;
     
 uint8_t calculate_rate_of_change(long * input_buffer, long * output_buffer, long index);
 void handle_sensors(void);
