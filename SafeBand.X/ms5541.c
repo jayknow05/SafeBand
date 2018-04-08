@@ -4,6 +4,7 @@
 #include "ms5541.h"
 #include "spi.h"
 #include "safeband.h"
+#include "deepsleep.h"
 
 long c1 = 2319;
 long c2 = 4864;

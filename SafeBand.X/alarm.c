@@ -16,7 +16,7 @@ uint32_t CurrentFrequency = 0;
 
 AlarmState _AlarmState = Off;
 
-void HandleAlarm(uint8_t shouldAlarm)
+int HandleAlarm(uint8_t shouldAlarm)
 {
     if (!shouldAlarm) 
     {
@@ -29,12 +29,12 @@ void HandleAlarm(uint8_t shouldAlarm)
             LedBlue_SetLow();
             DisablePwm();
         }
-        else
-        {
-            LedRed_Toggle();
-            LedGreen_Toggle();
-            LedBlue_Toggle();
-        }
+//        else
+//        {
+//            LedRed_Toggle();
+//            LedGreen_Toggle();
+//            LedBlue_Toggle();
+//        }
     }    
     else
     {
@@ -82,8 +82,14 @@ void HandleAlarm(uint8_t shouldAlarm)
             {
                 _AlarmState = Init;
             }
+            else
+            {
+                return 0;
+            }
             break;
         default:
             break;
     }
+    
+    return 1;
 }

@@ -62,10 +62,13 @@ int main(void) {
                 else
                 {
                     HandleAlarm(0);
+                    power_down_accelerometer();
+                    SleepOneWdtPeriod();
                 }
-                power_down_accelerometer();
+                                
+                
                 // P2V5_OFF();
-                //GoToSleep(ACQUIRING_PRESSURE, 0);
+                // GoToSleep(ACQUIRING_PRESSURE, 0);
                 break;
             case(ALARMING):
                 handle_sensors();
@@ -75,8 +78,10 @@ int main(void) {
                 }
                 else
                 {
-                    HandleAlarm(0);
-                    current_state = ACQUIRING_PRESSURE;
+                    if (!HandleAlarm(0))
+                    {
+                        current_state = ACQUIRING_PRESSURE;
+                    }
                 }                
                 break;
             default:

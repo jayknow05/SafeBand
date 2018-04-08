@@ -21,7 +21,7 @@ extern "C" {
     
 extern uint32_t AlarmSignalFrequencies[NUM_ALARM_SEGMENTS];
 extern uint32_t AlarmSignalDurations[NUM_ALARM_SEGMENTS];
-void HandleAlarm(uint8_t shouldAlarm);
+int HandleAlarm(uint8_t shouldAlarm);
 
 typedef enum
 {
